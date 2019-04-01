@@ -17,8 +17,8 @@ def login(driver, login_info):
     return True
 
 
-def get_item_img(spec_url, login_info=None, close=False):
-    driver = webdriver.Chrome()
+def get_item_img(driver, spec_url, login_info=None, close=False):
+  
     if login_info:
         login(driver, login_info)
 
