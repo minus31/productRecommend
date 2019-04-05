@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 # web_demo
 web_demo/
+# checkpoint
+checkpoint/
 
 # C extensions
 *.so
