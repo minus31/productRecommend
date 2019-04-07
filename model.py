@@ -51,8 +51,26 @@ def style_considered_model(inputs_shape, num_classes=None):
 
     return model_new
 
-
 def base_model(input_shape, num_classes=None):
+    """
+    backbone model : DenseNet121
+    """
+    model = keras.applications.DenseNet121(
+        input_shape=input_shape, include_top=False)
+    # frozen
+    model.trainable = False
+
+    x = GlobalAveragePooling2D()(model.layers[-1].output)
+ 
+    des = Dense(512, activation='elu', kernel_regularizer='l2')(x)
+    
+    cos = CosineTheta(num_classes, 512)(des)
+
+    model_new = Model(inputs=model.input, outputs=cos)
+
+    return model_new
+
+def base_multihead_model(input_shape, num_classes=None):
 
     model = keras.applications.DenseNet169(
         input_shape=input_shape, include_top=False)
@@ -108,7 +126,17 @@ class CosineTheta(keras.layers.Layer):
         return cosine
 
     def compute_output_shape(self, input_shape):
+        
         return (input_shape[0], self.num_classes)
+    
+    def get_config(self):
+        config = {
+        'num_classes': self.num_classes,
+        'embedding_dim': self.embedding_dim
+        }
+        
+        base_config = super(CosineTheta, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 
 def constant_xavier_initializer(shape, dtype=tf.float32, uniform=True, **kwargs):

@@ -1,5 +1,6 @@
 # -*- coding: utf_8 -*-
 import os
+import argparse
 import cv2
 import pickle
 import time
@@ -18,6 +19,8 @@ from keras.layers import GlobalAveragePooling2D, Activation, concatenate
 from keras.regularizers import l2
 from keras.utils import multi_gpu_model
 from keras.applications.densenet import preprocess_input
+from keras.preprocessing.image import ImageDataGenerator
+from keras.models import load_model
 import cv2
 
 from model import *
@@ -41,6 +44,7 @@ def get_feature(model, DB_path):
 
     db_generator = test_datagen.flow_from_directory(
         directory=DB_path,
+        classes=["db"],
         target_size=(224, 224),
         color_mode="rgb",
         batch_size=32,
@@ -48,8 +52,7 @@ def get_feature(model, DB_path):
         shuffle=False)
 
     db_vecs = intermediate_model.predict_generator(db_generator,
-                                                   steps=len(
-                                                       reference_generator),
+                                                   steps=len(db_generator),
                                                    verbose=1)
 
     return db_vecs
@@ -68,7 +71,7 @@ class Descriptor():
     def train(self, dataset_path, datagen, checkpoint_path, checkpoint_inteval):
 
         opt = keras.optimizers.Adam(amsgrad=True)
-
+        model = self.model
         model.compile(loss=ArcFaceloss, optimizer=opt)
 
         train_generator = datagen.flow_from_directory(
@@ -82,13 +85,13 @@ class Descriptor():
 
         val_generator = datagen.flow_from_directory(
             directory=dataset_path,
-            target_size=input_shape[:2],
+            target_size=self.input_shape[:2],
             color_mode="rgb",
             batch_size=self.batch_size,
             class_mode="categorical",
             shuffle=True,
             subset='validation')
-
+        
         """ Callback """
         monitor = 'loss'
         reduce_lr = ReduceLROnPlateau(monitor=monitor, patience=4)
@@ -99,7 +102,7 @@ class Descriptor():
 
         t0 = time.time()
 
-        for epoch in range(nb_epoch):
+        for epoch in range(self.nb_epoch):
             t1 = time.time()
             res = model.fit_generator(generator=train_generator,
                                       steps_per_epoch=STEP_SIZE_TRAIN,
@@ -115,24 +118,30 @@ class Descriptor():
             print('Training time for one epoch : %.1f' % ((t2 - t1)))
 
             if epoch % checkpoint_inteval == 0:
-                model.save(checkpoint_path + str(epoch) + ".hdf5")
-        model.save(checkpoint_path + "finish.hdf5")
+                model.save_weights(os.path.join(checkpoint_path, str(epoch)))
+                
+                
+        model.save_weights(os.path.join(checkpoint_path, "finish.hdf5"))
         print('Total training time : %.1f' % (time.time() - t0))
 
-    def updateDB(model_path, DB_path, reference_path):
+    def updateDB(self, model_path, DB_path, reference_path):
+        
+        db = [file for file in os.listdir(DB_path + "db") if file.endswith(".png")]
+        print("db file:", len(db))
 
-        db = [os.path.join(DB_path, path) for path in os.listdir(DB_path)]
+        self.model.load_weights(model_path)
 
-        model = load_model(model_path)
-
-        features = get_feature(model, DB_path)
-
-        reference = pd.DataFrame()
-
+        features = get_feature(self.model, DB_path)
+        
+        print("feature's shape", features.shape)
+        
+        reference = {}
+        
         reference["img"] = db
-        reference["feature"] = features
-
-        reference.to_csv(reference_path, index=False)
+        reference["feature"] = list(features)
+        
+        with open(reference_path, "wb") as f:
+            pickle.dump(reference, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         print("UPDATE COMPLETE")
 
@@ -144,18 +153,18 @@ if __name__ == '__main__':
     # hyperparameters
     args.add_argument('--epoch', type=int, default=100)
     args.add_argument('--batch_size', type=int, default=64)
-    args.add_argument('--num_classes', type=int, default=1383)
+    args.add_argument('--num_classes', type=int, default=600)
     args.add_argument('--input_shape', type=int, default=(224, 224, 3))
-    args.add_argument('--sbow', type=int, default=(128,))
+    args.add_argument('--sbow_shape', type=int, default=(128,))
     args.add_argument('--train', type=bool, default=False)
-    args.add_argument('--updateDB', type=str, default=None)
+    args.add_argument('--updateDB', type=bool, default=False)
     args.add_argument('--DB_path', type=str, default=None)
     args.add_argument('--model_path', type=str,
                       default="./checkpoint/finish.hdf5")
     args.add_argument('--dataset_path', type=str, default="./data/images/")
     args.add_argument('--checkpoint_path', type=str, default="./checkpoint/")
     args.add_argument('--checkpoint_inteval', type=int, default=10)
-    args.add_argument('--reference_path', type=str, default="./")
+    args.add_argument('--reference_path', type=str, default="./reference_part.p")
 
     config = args.parse_args()
 
@@ -168,8 +177,8 @@ if __name__ == '__main__':
                                      validation_split=0.1)
 
         descriptor.train(config.dataset_path, datagen,
-                         check_point=config.checkpoint_path, check_interval=config.checkpoint_inteval)
+                         checkpoint_path=config.checkpoint_path, checkpoint_inteval=config.checkpoint_inteval)
 
     if config.updateDB:
-        descriptor.updateDB(config.model_path,
-                            config.DB_path, config.reference_path)
+        
+        descriptor.updateDB(config.model_path, config.DB_path, config.reference_path)
