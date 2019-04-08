@@ -13,18 +13,12 @@ from keras.callbacks import ReduceLROnPlateau
 from keras import backend as K
 from keras.engine.input_layer import Input
 from keras.models import Model
-from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
-from keras.layers import BatchNormalization, Lambda, AveragePooling2D
-from keras.layers import GlobalAveragePooling2D, Activation, concatenate
-from keras.regularizers import l2
-from keras.utils import multi_gpu_model
 from keras.applications.densenet import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
-from keras.models import load_model
-import cv2
 
 from model import *
 from custom_loss import *
+from utils import *
 
 def preprocess(img):
     img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
@@ -54,8 +48,9 @@ def get_feature(model, DB_path):
     db_vecs = intermediate_model.predict_generator(db_generator,
                                                    steps=len(db_generator),
                                                    verbose=1)
+   
 
-    return db_vecs
+    return l2_normalize(db_vecs)
 
 class Descriptor():
     def __init__(self, config):
@@ -125,8 +120,8 @@ class Descriptor():
         print('Total training time : %.1f' % (time.time() - t0))
 
     def updateDB(self, model_path, DB_path, reference_path):
-        
-        db = [file for file in os.listdir(DB_path + "db") if file.endswith(".png")]
+        files = sorted(os.listdir(DB_path + "db"))
+        db = [file for file in files if file.endswith(".png")]
         print("db file:", len(db))
 
         self.model.load_weights(model_path)

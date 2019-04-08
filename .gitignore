@@ -6,7 +6,8 @@ __pycache__/
 web_demo/
 # checkpoint
 checkpoint/
-
+#untitled
+./Untitled.ipynb
 # C extensions
 *.so
 
