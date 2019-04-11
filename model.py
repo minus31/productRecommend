@@ -16,12 +16,41 @@ from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.layers import BatchNormalization, Lambda, AveragePooling2D
 from keras.layers import GlobalAveragePooling2D, Activation, concatenate
 from keras.regularizers import l2
-from keras.utils import multi_gpu_model
+
+from keras.engine.base_layer import InputSpec, Layer
+from keras.utils import conv_utils
+from keras.legacy import interfaces
 
 
 """
 Model Architecture for global descriptor 
+
 """
+
+def gcd_model(input_shape, num_classes=None):
+    """
+    backbone model : ResNet50
+    
+    descriptor dim : 1024 (512 * 2) 
+    """
+    model = keras.applications.ResNet50(input_shape=input_shape, include_top=False)
+
+    gd1 = GlobalAveragePooling2D()(model.layers[-1].output)
+    gd2 = GlobalGeMPooling2D()(model.layers[-1].output)
+ 
+    des1 = Dense(512, activation='elu', kernel_regularizer='l2')(gd1)
+    des2 = Dense(512, activation='elu', kernel_regularizer='l2')(gd2)
+    
+    aux = Dense(num_classes, activation='softmax')(des1)
+    # temperature scaling 
+    aux = Lambda(lambda x: x / 0.5)(aux)
+    
+    con = concatenate([des1, des2])
+    cos = CosineTheta(num_classes, 512*2)(con)
+
+    model_new = Model(inputs=model.input, outputs=[aux, cos])
+
+    return model_new
 
 
 def style_considered_model(inputs_shape, num_classes=None):
@@ -51,7 +80,7 @@ def style_considered_model(inputs_shape, num_classes=None):
 
     return model_new
 
-def base_model(input_shape, num_classes=None):
+def base_densenet_model(input_shape, num_classes=None):
     """
     backbone model : DenseNet121
     """
@@ -161,6 +190,65 @@ def constant_xavier_initializer(shape, dtype=tf.float32, uniform=True, **kwargs)
         # To get stddev = math.sqrt(factor / n) need to adjust for truncated.
         trunc_stddev = math.sqrt(1.3 * 1.0 / n)
         return tf.truncated_normal(shape, 0.0, trunc_stddev, dtype, seed=None)
+
+
+class _GlobalPooling2D(Layer):
+    """Abstract class for different global pooling 2D layers.
+    """
+
+    @interfaces.legacy_global_pooling_support
+    def __init__(self, data_format=None, **kwargs):
+        super(_GlobalPooling2D, self).__init__(**kwargs)
+        self.data_format = K.normalize_data_format(data_format)
+        self.input_spec = InputSpec(ndim=4)
+        self.pk = K.variable(value=2., dtype='float')
+
+    def compute_output_shape(self, input_shape):
+        if self.data_format == 'channels_last':
+            return (input_shape[0], input_shape[3])
+        else:
+            return (input_shape[0], input_shape[1])
+
+    def call(self, inputs):
+        raise NotImplementedError
+
+    def get_config(self):
+        config = {'data_format': self.data_format}
+        base_config = super(_GlobalPooling2D, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+class GlobalGeMPooling2D(_GlobalPooling2D):
+    """Global average pooling operation for spatial data.
+    # Arguments
+        data_format: A string,
+            one of `channels_last` (default) or `channels_first`.
+            The ordering of the dimensions in the inputs.
+            `channels_last` corresponds to inputs with shape
+            `(batch, height, width, channels)` while `channels_first`
+            corresponds to inputs with shape
+            `(batch, channels, height, width)`.
+            It defaults to the `image_data_format` value found in your
+            Keras config file at `~/.keras/keras.json`.
+            If you never set it, then it will be "channels_last".
+    # Input shape
+        - If `data_format='channels_last'`:
+            4D tensor with shape:
+            `(batch_size, rows, cols, channels)`
+        - If `data_format='channels_first'`:
+            4D tensor with shape:
+            `(batch_size, channels, rows, cols)`
+    # Output shape
+        2D tensor with shape:
+        `(batch_size, channels)`
+    """
+
+    def call(self, inputs):
+        if self.data_format == 'channels_last':
+            return K.pow(K.mean(K.pow(inputs, self.pk), axis=[1, 2]), 1/self.pk)
+        else:
+            return K.pow(K.mean(K.pow(inputs, self.pk), axis=[2, 3]), 1/self.pk)
+
 
 
 if __name__ == '__main__':

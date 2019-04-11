@@ -1,4 +1,3 @@
-# -*- coding: utf_8 -*-
 import os
 import argparse
 import cv2
@@ -21,14 +20,14 @@ from custom_loss import *
 from utils import *
 
 def preprocess(img):
-    img = cv2.resize(img, (256, 256), interpolation=cv2.INTER_AREA)
+    img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
 
     return preprocess_input(img)
 
 
 def get_feature(model, DB_path):
 
-    img_size = (256, 256)
+    img_size = (224, 224)
 
     intermediate_model = Model(
         inputs=model.input, outputs=model.layers[-2].output)
@@ -39,7 +38,7 @@ def get_feature(model, DB_path):
     db_generator = test_datagen.flow_from_directory(
         directory=DB_path,
         classes=["db"],
-        target_size=(256, 256),
+        target_size=(224, 224),
         color_mode="rgb",
         batch_size=32,
         class_mode=None,
@@ -52,30 +51,6 @@ def get_feature(model, DB_path):
 
     return l2_normalize(db_vecs)
 
-def join_generators(generators):
-    while True: # keras requires all generators to be infinite
-        data = [next(g) for g in generators]
-
-        x = [d[0] for d in data]
-        
-        # label smoothing 
-        epsilon = 1e-1
-        y1 = [(1 - epsilon)*d[1] + (epsilon/len(d[1])) for d in data]
-        
-        y2 = [d[1] for d in data]
-
-        yield x, y1, y2
-        
-# class CustomHistory(keras.callbacks.Callback):
-#     def init(self):
-#         self.losses = []
-#         self.val_losses = []
-        
-#     def on_epoch_end(self, batch, logs={}):
-#         self.losses.append(logs.get('loss'))
-#         self.val_losses.append(logs.get('val_loss'))
-
-
 class Descriptor():
     def __init__(self, config):
 
@@ -85,13 +60,13 @@ class Descriptor():
         self.batch_size = config.batch_size
         self.nb_epoch = config.epoch
 
-        self.model = gcd_model(self.input_shape, self.num_classes)
+        self.model = base_model(self.input_shape, self.num_classes)
 
     def train(self, dataset_path, datagen, checkpoint_path, checkpoint_inteval):
 
         opt = keras.optimizers.Adam(amsgrad=True)
         model = self.model
-        model.compile(loss=['categorical_crossentropy', ArcFaceloss], optimizer=opt)
+        model.compile(loss=ArcFaceloss, optimizer=opt)
 
         train_generator = datagen.flow_from_directory(
             directory=dataset_path,
@@ -111,15 +86,9 @@ class Descriptor():
             shuffle=True,
             subset='validation')
         
-        
         """ Callback """
         monitor = 'loss'
         reduce_lr = ReduceLROnPlateau(monitor=monitor, patience=4)
-        
-        """callback for Tensorboard"""
-#         custom_hist = CustomHistory()
-#         custom_hist.init()
-        tb = keras.callbacks.TensorBoard(log_dir="./logs/", update_freq='batch')
 
         """ Training loop """
         STEP_SIZE_TRAIN = train_generator.n // train_generator.batch_size
@@ -129,13 +98,13 @@ class Descriptor():
 
         for epoch in range(self.nb_epoch):
             t1 = time.time()
-            res = model.fit_generator(generator=join_generators(train_generator),
+            res = model.fit_generator(generator=train_generator,
                                       steps_per_epoch=STEP_SIZE_TRAIN,
                                       initial_epoch=epoch,
-                                      validation_data=join_generators(val_generator),
+                                      validation_data=val_generator,
                                       validation_steps=STEP_SIZE_VAL,
                                       epochs=epoch + 1,
-                                      callbacks=[reduce_lr, tb],
+                                      callbacks=[reduce_lr],
                                       verbose=1,
                                       shuffle=True)
             t2 = time.time()
@@ -176,10 +145,10 @@ if __name__ == '__main__':
     args = argparse.ArgumentParser()
 
     # hyperparameters
-    args.add_argument('--epoch', type=int, default=1000)
+    args.add_argument('--epoch', type=int, default=100)
     args.add_argument('--batch_size', type=int, default=64)
     args.add_argument('--num_classes', type=int, default=600)
-    args.add_argument('--input_shape', type=int, default=(256, 256, 3))
+    args.add_argument('--input_shape', type=int, default=(224, 224, 3))
     args.add_argument('--sbow_shape', type=int, default=(128,))
     args.add_argument('--train', type=bool, default=False)
     args.add_argument('--updateDB', type=bool, default=False)
