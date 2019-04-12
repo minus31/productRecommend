@@ -53,18 +53,18 @@ def get_feature(model, DB_path):
     return l2_normalize(db_vecs)
 
 def join_generators(generators):
-    while True: # keras requires all generators to be infinite
-        data = [g for g in generators]
 
-        x = [d[0] for d in data]
-        
-        # label smoothing 
-        epsilon = 1e-1
-        y1 = [(1 - epsilon)*d[1] + (epsilon/len(d[1])) for d in data]
-        
-        y2 = [d[1] for d in data]
+    data = [g for g in generators]
 
-        yield x, y1, y2
+    x = [d[0] for d in data]
+
+    # label smoothing 
+    epsilon = 1e-1
+    y1 = [(1 - epsilon)*d[1] + (epsilon/len(d[1])) for d in data]
+
+    y2 = [d[1] for d in data]
+
+    yield x, y1, y2
         
 # class CustomHistory(keras.callbacks.Callback):
 #     def init(self):
