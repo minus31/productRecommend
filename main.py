@@ -54,9 +54,9 @@ def get_feature(model, DB_path):
 
 def join_generators(generators):
     while True: # keras requires all generators to be infinite
-#         data = [next(g) for g in generators]
+        data = [g for g in generators]
 
-        x = [d[0] for d in generators]
+        x = [d[0] for d in data]
         
         # label smoothing 
         epsilon = 1e-1
