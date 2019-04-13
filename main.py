@@ -121,10 +121,10 @@ class Descriptor():
 
         for epoch in range(self.nb_epoch):
             t1 = time.time()
-            res = model.fit_generator(generator=join_generators(train_generator),
+            res = model.fit_generator(generator=gen_multiOutput(train_generator),
                                       steps_per_epoch=STEP_SIZE_TRAIN,
                                       initial_epoch=epoch,
-                                      validation_data=join_generators(val_generator),
+                                      validation_data=gen_multiOutput(val_generator),
                                       validation_steps=STEP_SIZE_VAL,
                                       epochs=epoch + 1,
                                       callbacks=[reduce_lr, tb],
