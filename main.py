@@ -13,7 +13,7 @@ from keras.callbacks import ReduceLROnPlateau
 from keras import backend as K
 from keras.engine.input_layer import Input
 from keras.models import Model
-from keras.applications.densenet import preprocess_input
+from keras.applications.resnet50 import preprocess_input
 from keras.preprocessing.image import ImageDataGenerator
 
 from model import *
@@ -48,7 +48,6 @@ def get_feature(model, DB_path):
                                                    steps=len(db_generator),
                                                    verbose=1)
    
-
     return l2_normalize(db_vecs)
 
 def gen_multiOutput(generators):
@@ -108,8 +107,6 @@ class Descriptor():
         reduce_lr = ReduceLROnPlateau(monitor=monitor, patience=4)
         
         """callback for Tensorboard"""
-#         custom_hist = CustomHistory()
-#         custom_hist.init()
         tb = keras.callbacks.TensorBoard(log_dir="./logs/", update_freq='batch')
 
         """ Training loop """
@@ -141,7 +138,8 @@ class Descriptor():
         print('Total training time : %.1f' % (time.time() - t0))
 
     def updateDB(self, model_path, DB_path, reference_path):
-        files = sorted(os.listdir(DB_path + "db"))
+        ## location where db images are 
+        files = sorted(os.listdir(DB_path + reference_path.split(".")[1][-4:]))
         db = [file for file in files if file.endswith(".png")]
         print("db file:", len(db))
 

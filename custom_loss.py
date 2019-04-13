@@ -18,9 +18,9 @@ def ArcFaceloss(labels, features):
 
     others = -1. * tf.multiply(tf.subtract(tf.cast(labels, tf.float32), 1.0), features)
     others = tf.exp(s * others)
-    others = tf.reduce_sum(others, axis=-1)
+    others = tf.subtract(tf.reduce_sum(others, axis=-1), 1.0)
 
-    log_ = tf.log(tf.divide(target_cos, tf.add(target_cos, others)))
+    log_ = tf.log(tf.divide(target_cos, tf.add(tf.add(target_cos, others), 1e-4)))
 
     output = -1. * tf.divide(tf.reduce_sum(log_), tf.cast(N, tf.float32))
 

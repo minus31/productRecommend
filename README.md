@@ -1,6 +1,4 @@
-# productRecommend
-- Content-based fashion items recommendation
-
+# Content-based fashion items recommendation
 This repo is a framework implemented with Keras for image retreval and content-based recommendation task. 
 
 #### Project inspiration
