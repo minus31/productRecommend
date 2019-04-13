@@ -52,28 +52,20 @@ def get_feature(model, DB_path):
 
     return l2_normalize(db_vecs)
 
-def join_generators(generators):
-
-    data = [g for g in generators]
-
-    x = [d[0] for d in data]
+def gen_multiOutput(generators):
+    
+    while True:
+        data = next(generators)
+        
+    x = data[0]
 
     # label smoothing 
     epsilon = 1e-1
-    y1 = [(1 - epsilon)*d[1] + (epsilon/len(d[1])) for d in data]
+    y1 = (1 - epsilon) * data[1] + (epsilon/data[1].shape[-1]) 
 
-    y2 = [d[1] for d in data]
+    y2 = data[1]
 
     yield x, y1, y2
-        
-# class CustomHistory(keras.callbacks.Callback):
-#     def init(self):
-#         self.losses = []
-#         self.val_losses = []
-        
-#     def on_epoch_end(self, batch, logs={}):
-#         self.losses.append(logs.get('loss'))
-#         self.val_losses.append(logs.get('val_loss'))
 
 
 class Descriptor():
