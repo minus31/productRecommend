@@ -27,7 +27,7 @@ Model Architecture for global descriptor
 
 """
 
-def gcd_model(input_shape, num_classes=None):
+def cgd_model(input_shape, num_classes=None):
     """
     backbone model : ResNet50
     

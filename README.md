@@ -1,7 +1,7 @@
 # productRecommend
 - Content-based fashion items recommendation
 
-This repo is a framework impelmented with Keras for image retreval and content-based recommendation task. 
+This repo is a framework implemented with Keras for image retreval and content-based recommendation task. 
 
 #### Project inspiration
 
@@ -39,7 +39,7 @@ I extract **600** posts for training **300** posts for test. I regard images in 
 - Label smoothing and temperature scaling for classification loss.
 - Use ArcFace([paper](https://arxiv.org/abs/1801.07698), [summary](https://minus31.github.io/2019/04/08/ArcFace/)) loss function to get fully discriminative global descriptor.
 
-#### Thing to improve
+#### Things to improve
 
 1. I couldn't design a proper metric for my dataset to estimate the performance.
 

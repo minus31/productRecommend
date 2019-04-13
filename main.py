@@ -31,14 +31,13 @@ def get_feature(model, DB_path):
     img_size = (256, 256)
 
     intermediate_model = Model(
-        inputs=model.input, outputs=model.layers[-2].output)
-
+        inputs=model.input, outputs=model.layers[-3].output)
+   
     test_datagen = ImageDataGenerator(
         preprocessing_function=preprocess, dtype='float32')
 
     db_generator = test_datagen.flow_from_directory(
         directory=DB_path,
-        classes=["db"],
         target_size=(256, 256),
         color_mode="rgb",
         batch_size=32,
@@ -77,7 +76,7 @@ class Descriptor():
         self.batch_size = config.batch_size
         self.nb_epoch = config.epoch
 
-        self.model = gcd_model(self.input_shape, self.num_classes)
+        self.model = cgd_model(self.input_shape, self.num_classes)
 
     def train(self, dataset_path, datagen, checkpoint_path, checkpoint_inteval):
 
@@ -138,7 +137,7 @@ class Descriptor():
                 model.save_weights(os.path.join(checkpoint_path, str(epoch)))
                 
                 
-        model.save_weights(os.path.join(checkpoint_path, "finish.hdf5"))
+        model.save_weights(os.path.join(checkpoint_path, "finish"))
         print('Total training time : %.1f' % (time.time() - t0))
 
     def updateDB(self, model_path, DB_path, reference_path):
@@ -177,7 +176,7 @@ if __name__ == '__main__':
     args.add_argument('--updateDB', type=bool, default=False)
     args.add_argument('--DB_path', type=str, default=None)
     args.add_argument('--model_path', type=str,
-                      default="./checkpoint/finish.hdf5")
+                      default="./checkpoint/finish")
     args.add_argument('--dataset_path', type=str, default="./data/images/")
     args.add_argument('--checkpoint_path', type=str, default="./checkpoint/")
     args.add_argument('--checkpoint_inteval', type=int, default=10)
