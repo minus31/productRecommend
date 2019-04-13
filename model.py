@@ -201,7 +201,7 @@ class _GlobalPooling2D(Layer):
         super(_GlobalPooling2D, self).__init__(**kwargs)
         self.data_format = K.normalize_data_format(data_format)
         self.input_spec = InputSpec(ndim=4)
-        self.pk = K.variable(value=1.5., dtype='float')
+        self.pk = K.variable(value=1.5, dtype='float')
 
     def compute_output_shape(self, input_shape):
         if self.data_format == 'channels_last':
