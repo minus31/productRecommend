@@ -57,15 +57,15 @@ def gen_multiOutput(generators):
     while True:
         data = next(generators)
         
-    x = data[0]
+        x = data[0]
 
-    # label smoothing 
-    epsilon = 1e-1
-    y1 = (1 - epsilon) * data[1] + (epsilon/data[1].shape[-1]) 
+        # label smoothing 
+        epsilon = 1e-1
+        y1 = (1 - epsilon) * data[1] + (epsilon/data[1].shape[-1]) 
 
-    y2 = data[1]
+        y2 = data[1]
 
-    yield x, y1, y2
+        yield x, [y1, y2]
 
 
 class Descriptor():
