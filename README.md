@@ -1,6 +1,22 @@
 # Content-based fashion items recommendation
 This repo is a framework implemented with Keras for image retreval and content-based recommendation task. 
 
+#### main.py
+
+**Train**
+
+```python main.py --train True --batch_size 64 --epoch 1000 --dataset_path {path where data located}```
+
+**Update DB**
+
+- for part images
+
+```python main.py --updateDB True --DB_path ./data/db/db/ --model_path ./checkpoint/0 --reference_path ./reference_part.p```
+
+- for snapshot images
+
+```python main.py --updateDB True --DB_path ./data/db/snap/ --model_path ./checkpoint/0 --reference_path ./reference_snap.p```
+
 #### Project inspiration
 
 dfdf
@@ -31,8 +47,8 @@ I extract **600** posts for training **300** posts for test. I regard images in 
 
 * Backbone model : ResNet50(pretrained on the ImageNet dataset)
 
-* Use Combined Global Descriptor inspired by this [paper](), [summary]()
-  - In this case, two diffrent descriptors used : SPoC and GeM(implement them with reference of this [paper](https://arxiv.org/pdf/1711.02512.pdf))
+* Use Combined Global Descriptor inspired by this [paper](https://arxiv.org/pdf/1903.10663.pdf), [summary](https://minus31.github.io/2019/04/08/CGD/)
+  - In this case, two diffrent descriptors used : SPoC and GeM(implement them with reference of this [paper](https://arxiv.org/pdf/1711.02512.pdf)
 
 - Label smoothing and temperature scaling for classification loss.
 - Use ArcFace([paper](https://arxiv.org/abs/1801.07698), [summary](https://minus31.github.io/2019/04/08/ArcFace/)) loss function to get fully discriminative global descriptor.
