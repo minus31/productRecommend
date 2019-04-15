@@ -1,5 +1,5 @@
 ## Content-based fashion items recommendation
-This repo is a framework implemented with Keras for image retreval and content-based recommendation task. I call images of people with **snapshot images** and images of items with **item images**
+This repo is a framework implemented with Keras for image retreval and content-based recommendation task. In the system, photos of people are called **Snapshots** and photos of clothing are called **Items**. When someone inputs an image of snapshot(or items), this system find items(or snapshot) which look similar to what the one entered  from database. Although it just outputs six images for now, It could be utilized to recommend products and shorten time for customers to reach to what they look for. 
 
 * Demo site link : http://n31.closedclothes.tk/
 
@@ -7,13 +7,13 @@ This repo is a framework implemented with Keras for image retreval and content-b
 
 **CASE 1** : Input a snapshot image and output six of items which 
 
-*[example 'part']*
+[example 'part']
 
 <img src="https://www.dropbox.com/s/w6jj3giiokcnkcz/Screenshot%202019-04-15%2012.48.20.png?raw=1">
 
 **CASE 2** : Input an item image and output six of snapshots which 
 
-*[example 'snap']*
+[example 'snap']
 
 <img src="https://www.dropbox.com/s/n6rsf5ad6wlgxf0/Screenshot%202019-04-15%2012.47.25.png?raw=1">
 
