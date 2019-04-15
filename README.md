@@ -9,13 +9,13 @@ This repo is a framework implemented with Keras for image retreval and content-b
 
 *[example 'part']*
 
-<img src="https://www.dropbox.com/s/k4935w5a3y4hphk/ex_part.png?raw=1">
+<img src="https://www.dropbox.com/s/w6jj3giiokcnkcz/Screenshot%202019-04-15%2012.48.20.png?raw=1">
 
 **CASE 2** : Input an item image and output six of snapshots which 
 
 *[example 'snap']*
 
-<img src="https://www.dropbox.com/s/wsty63ebn1inbr8/ex_snap.png?raw=1">
+<img src="https://www.dropbox.com/s/n6rsf5ad6wlgxf0/Screenshot%202019-04-15%2012.47.25.png?raw=1">
 
 #### Data source 
 
@@ -43,7 +43,7 @@ I have extracted **600** posts for training, **300** posts for test. I regard im
 
    - I am getting rid of the images every time I find the one. 
 
-   <img src="https://www.dropbox.com/s/2bmfu3f2lytswdx/Screenshot%202019-04-14%2023.36.39.png?raw=1">
+   <img src="https://www.dropbox.com/s/qcq27ubpysoqon7/Screenshot%202019-04-15%2012.49.32.png?raw=1">
 
 2. I gathered extra information such as '이름(나이)', '직업', '태그', '관련브랜드', '스타일' and etc. In '스타일', there are 8 kinds of style for total. And it seems like Musinsa.com has its major style that the site promote the most. Thus, I think that it could infulence on the result somehow.  
 
