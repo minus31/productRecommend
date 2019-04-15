@@ -8,11 +8,13 @@ This repo is a framework implemented with Keras for image retreval and content-b
 **CASE 1** : Input a snapshot image and output six of items which 
 
 *[example 'part']*
+
 <img src="https://www.dropbox.com/s/k4935w5a3y4hphk/ex_part.png?raw=1">
 
 **CASE 2** : Input an item image and output six of snapshots which 
 
 *[example 'snap']*
+
 <img src="https://www.dropbox.com/s/wsty63ebn1inbr8/ex_snap.png?raw=1">
 
 #### Data source 
