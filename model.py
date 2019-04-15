@@ -23,28 +23,26 @@ from keras.legacy import interfaces
 
 
 """
-Model Architecture for global descriptor 
-
+Model Architecture for global descriptor
 """
 
 def cgd_model(input_shape, num_classes=None):
     """
-    backbone model : ResNet50
-    
-    descriptor dim : 1024 (512 * 2) 
+    backbone model : ResNet50 + (SPoC, GeM)
+    descriptor dim : 1024 (512 * 2)
     """
     model = keras.applications.ResNet50(input_shape=input_shape, include_top=False)
 
     gd1 = GlobalAveragePooling2D()(model.layers[-1].output)
     gd2 = GlobalGeMPooling2D()(model.layers[-1].output)
- 
+
     des1 = Dense(512, activation='elu', kernel_regularizer='l2')(gd1)
     des2 = Dense(512, activation='elu', kernel_regularizer='l2')(gd2)
-    
+
     aux = Dense(num_classes, activation='softmax')(des1)
-    # temperature scaling 
+    # temperature scaling
     aux = Lambda(lambda x: x / 0.5)(aux)
-    
+
     con = concatenate([des1, des2])
     cos = CosineTheta(num_classes, 512*2)(con)
 
@@ -54,7 +52,9 @@ def cgd_model(input_shape, num_classes=None):
 
 
 def style_considered_model(inputs_shape, num_classes=None):
-
+    """
+    concerning style information
+    """
     input_shape, sbow_shape = inputs_shape
 
     model = keras.applications.DenseNet169(
@@ -82,7 +82,7 @@ def style_considered_model(inputs_shape, num_classes=None):
 
 def base_densenet_model(input_shape, num_classes=None):
     """
-    backbone model : DenseNet121
+    backbone model : DenseNet121 + ArcFace
     """
     model = keras.applications.DenseNet121(
         input_shape=input_shape, include_top=False)
@@ -90,9 +90,9 @@ def base_densenet_model(input_shape, num_classes=None):
     model.trainable = False
 
     x = GlobalAveragePooling2D()(model.layers[-1].output)
- 
+
     des = Dense(512, activation='elu', kernel_regularizer='l2')(x)
-    
+
     cos = CosineTheta(num_classes, 512)(des)
 
     model_new = Model(inputs=model.input, outputs=cos)
@@ -100,6 +100,9 @@ def base_densenet_model(input_shape, num_classes=None):
     return model_new
 
 def base_multihead_model(input_shape, num_classes=None):
+    """
+    backbone model : DenseNet121 + three head +ArcFace
+    """
 
     model = keras.applications.DenseNet169(
         input_shape=input_shape, include_top=False)
@@ -123,6 +126,7 @@ def base_multihead_model(input_shape, num_classes=None):
     return model_new
 
 
+# layer for linear transformation
 class CosineTheta(keras.layers.Layer):
 
     def __init__(self, num_classes, embedding_dim, **kwargs):
@@ -155,22 +159,21 @@ class CosineTheta(keras.layers.Layer):
         return cosine
 
     def compute_output_shape(self, input_shape):
-        
+
         return (input_shape[0], self.num_classes)
-    
+
     def get_config(self):
         config = {
         'num_classes': self.num_classes,
         'embedding_dim': self.embedding_dim
         }
-        
+
         base_config = super(CosineTheta, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
 
 def constant_xavier_initializer(shape, dtype=tf.float32, uniform=True, **kwargs):
-    """Initializer function."""
-
+    """Initializer function"""
     if shape:
         fan_in = float(shape[-2]) if len(shape) > 1 else float(shape[-1])
         fan_out = float(shape[-1])
@@ -193,7 +196,8 @@ def constant_xavier_initializer(shape, dtype=tf.float32, uniform=True, **kwargs)
 
 
 class _GlobalPooling2D(Layer):
-    """Abstract class for different global pooling 2D layers.
+    """
+    Abstract class for different global pooling 2D layers.
     """
 
     @interfaces.legacy_global_pooling_support
@@ -220,6 +224,7 @@ class _GlobalPooling2D(Layer):
 
 class GlobalGeMPooling2D(_GlobalPooling2D):
     """
+    GeM pooling layer
     """
 
     def call(self, inputs):
@@ -227,8 +232,6 @@ class GlobalGeMPooling2D(_GlobalPooling2D):
             return K.pow(K.mean(K.pow(inputs, self.pk), axis=[1, 2]), 1/self.pk)
         else:
             return K.pow(K.mean(K.pow(inputs, self.pk), axis=[2, 3]), 1/self.pk)
-
-
 
 if __name__ == '__main__':
 

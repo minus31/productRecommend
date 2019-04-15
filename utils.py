@@ -1,7 +1,8 @@
-import numpy as np 
+import numpy as np
 
 
 def l2_distance(p, q):
+    
     return np.linalg.norm(p - q)
 
 def l2_normalize(v, axis=-1):

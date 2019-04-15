@@ -21,18 +21,29 @@ from custom_loss import *
 from utils import *
 
 def preprocess(img):
+    """
+    resize - 256,256, interpolation = cv2.INTER_AREA(which is recommended in a case of sizeing down)
+    """
     img = cv2.resize(img, (256, 256), interpolation=cv2.INTER_AREA)
 
     return preprocess_input(img)
 
 
 def get_feature(model, DB_path):
+    """
+    Arguments
+     model : keras model
+     DB_path : path where dataset locate
+
+    return
+     l2_normalized global descriptor
+    """
 
     img_size = (256, 256)
 
     intermediate_model = Model(
         inputs=model.input, outputs=model.layers[-3].output)
-   
+
     test_datagen = ImageDataGenerator(
         preprocessing_function=preprocess, dtype='float32')
 
@@ -47,19 +58,22 @@ def get_feature(model, DB_path):
     db_vecs = intermediate_model.predict_generator(db_generator,
                                                    steps=len(db_generator),
                                                    verbose=1)
-   
+
     return l2_normalize(db_vecs)
 
 def gen_multiOutput(generators):
-    
+    """
+    wrapper of data generator for multiple outputs
+    """
+
     while True:
         data = next(generators)
-        
+
         x = data[0]
 
-        # label smoothing 
+        # label smoothing
         epsilon = 1e-1
-        y1 = (1 - epsilon) * data[1] + (epsilon/data[1].shape[-1]) 
+        y1 = (1 - epsilon) * data[1] + (epsilon/data[1].shape[-1])
 
         y2 = data[1]
 
@@ -100,13 +114,13 @@ class Descriptor():
             class_mode="categorical",
             shuffle=True,
             subset='validation')
-        
-        
+
+
         """ Callback """
         monitor = 'loss'
         reduce_lr = ReduceLROnPlateau(monitor=monitor, patience=4)
-        
-        """callback for Tensorboard"""
+
+        """Callback for Tensorboard"""
         tb = keras.callbacks.TensorBoard(log_dir="./logs/", update_freq='batch')
 
         """ Training loop """
@@ -132,13 +146,13 @@ class Descriptor():
 
             if epoch % checkpoint_inteval == 0:
                 model.save_weights(os.path.join(checkpoint_path, str(epoch)))
-                
-                
+
+
         model.save_weights(os.path.join(checkpoint_path, "finish"))
         print('Total training time : %.1f' % (time.time() - t0))
 
     def updateDB(self, model_path, DB_path, reference_path):
-        ## location where db images are 
+        ## location where db images are
         files = sorted(os.listdir(DB_path + reference_path.split(".")[1][-4:]))
         db = [file for file in files if file.endswith(".png")]
         print("db file:", len(db))
@@ -146,18 +160,18 @@ class Descriptor():
         self.model.load_weights(model_path)
 
         features = get_feature(self.model, DB_path)
-        
+
         print("feature's shape", features.shape)
-        
+
         reference = {}
-        
+
         reference["img"] = db
         reference["feature"] = list(features)
-        
+
         with open(reference_path, "wb") as f:
             pickle.dump(reference, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-        print("UPDATE COMPLETE")
+        print("UPDATE COMPLETE!")
 
         return None
 
@@ -181,7 +195,7 @@ if __name__ == '__main__':
     args.add_argument('--reference_path', type=str, default="./reference_part.p")
 
     config = args.parse_args()
-
+    
     descriptor = Descriptor(config)
 
     if config.train:
@@ -194,5 +208,5 @@ if __name__ == '__main__':
                          checkpoint_path=config.checkpoint_path, checkpoint_inteval=config.checkpoint_inteval)
 
     if config.updateDB:
-        
+
         descriptor.updateDB(config.model_path, config.DB_path, config.reference_path)
