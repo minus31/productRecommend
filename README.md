@@ -16,7 +16,7 @@
 
 <img src="https://www.dropbox.com/s/6di2thhbxwx9yjq/site_example.png?raw=1">
 
-이것들이 실제로 시각적으로 유사한 것은 아닌 듯 합니다. 다음 예처럼 시각적으로는 공통점이 아예 없는 것들도 소개 되곤합니다. 
+이것들이 시각적으로 유사한 것은 아닌 듯 합니다. 다음 예처럼 시각적으로는 공통점이 아예 없는 것들도 소개 되곤합니다. 
 
 <img src="https://www.dropbox.com/s/zg0i5k6xvtebqyo/Screenshot%202019-04-15%2012.28.19.png?raw=1">
 
@@ -40,7 +40,7 @@
 
 #### Model details 
 
-모델을 설계할 때는 이미지 검색기술을 사용했습니다. CNN을 통과해 이미지의 설명자(Descriptor)를 만들고 그 유사도를 기준으로 관련된 이미지를 출력합니다. 이 설명자의 유사도가 연관된 이미지 간에 높아지도록 지도학습을 진행했습니다. 이렇게 학습을 하면, 다소 시각적인 관계가 없는 이미지에 대해서도 어떠한 관계를 찾을 수 있지 않을까 생각했습니다. 
+모델을 설계할 때는 이미지 검색기술을 사용했습니다. CNN을 통과해 이미지의 설명자(Descriptor)를 만들고 그 유사도를 기준으로 관련된 이미지를 출력합니다. 이 설명자의 유사도가 연관된 이미지 간에 높아지도록 지도학습을 진행했습니다. 이렇게 학습을 하면, 다소 시각적으로 유사하지 않은 이미지에 대해서도 어떠한 관계를 찾을 수 있지 않을까 생각했습니다. 
 
 - Backbone model : ResNet50(pretrained on the ImageNet dataset)
 - [paper](https://arxiv.org/pdf/1903.10663.pdf), [summary](https://minus31.github.io/2019/04/08/CGD/) 이 논문을 참고하여 Combined Global Descriptor를 사용했습니다. 여기서는 다음 두 가지의 풀링 방법을 사용했습니다. 
@@ -53,7 +53,7 @@
 
 #### Things to improve
 
-1. 이 프로젝트에서 효과적인 Metric 을 설계 하지 못했습니다.(실제로 테스트셋에서 나온 것을 말해주는 것을 일단 구현하자.)
+1. 이 프로젝트에서 효과적인 Metric 을 설계 하지 못했습니다.(MAP가 )
 2. Post processing 기법을 inference시에 적용할 예정입니다. 
    - Average query expansion 
    - Database-side feature augmentation
@@ -61,13 +61,7 @@
 
 #### Troubles 
 
-1. In inference database, there are several duplicated item images.
-
-   - I am getting rid of the images every time I find the one.  --> 해결 할 것입니다. 
-
-   <img src="https://www.dropbox.com/s/t1468i6h72bsbq1/Screenshot%202019-04-15%2012.52.36.png?raw=1">
-
-2. I gathered extra information such as '이름(나이)', '직업', '태그', '관련브랜드', '스타일' and etc. In '스타일', there are 8 kinds of style for total. And it seems like Musinsa.com has its major style that the site promote the most. Thus, I think that it could infulence on the result somehow.  
+1. I gathered extra information such as '이름(나이)', '직업', '태그', '관련브랜드', '스타일' and etc. In '스타일', there are 8 kinds of style for total. And it seems like Musinsa.com has its major style that the site promote the most. Thus, I think that it could infulence on the result somehow.  
 
    <img src="https://www.dropbox.com/s/heqdgpoxgdcyv2n/style_frequency.png?raw=1"> 
 
@@ -170,10 +164,5 @@ Process of training and updating db are implemented in `main.py`.
 
 **Update DB**
 
-- for part images
+```python main.py --updateDB True --model_path ./checkpoint/model_weight```
 
-```python main.py --updateDB True --DB_path ./data/db/db/ --model_path ./checkpoint/0 --reference_path ./reference_part.p```
-
-- for snapshot images
-
-```python main.py --updateDB True --DB_path ./data/db/snap/ --model_path ./checkpoint/0 --reference_path ./reference_snap.p```

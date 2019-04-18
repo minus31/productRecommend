@@ -19,6 +19,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from model import *
 from custom_loss import *
 from utils import *
+from metric import *
 
 def preprocess(img):
     """
@@ -88,7 +89,8 @@ class Descriptor():
         self.num_classes = config.num_classes
         self.batch_size = config.batch_size
         self.nb_epoch = config.epoch
-
+        self.k = config.k
+        
         self.model = cgd_model(self.input_shape, self.num_classes)
 
     def train(self, dataset_path, datagen, checkpoint_path, checkpoint_inteval):
@@ -151,29 +153,86 @@ class Descriptor():
         model.save_weights(os.path.join(checkpoint_path, "finish"))
         print('Total training time : %.1f' % (time.time() - t0))
 
-    def updateDB(self, model_path, DB_path, reference_path):
-        ## location where db images are
-        files = sorted(os.listdir(DB_path + reference_path.split(".")[1][-4:]))
-        db = [file for file in files if file.endswith(".png")]
-        print("db file:", len(db))
+    def updateDB(self, model_path):
+        """
+        model_path : model weight file path 
+        """
+        snap_files = sorted(os.listdir(snap_path + "snap"))
+        snap_db = [file for file in snap_files if file.endswith(".png")]
+        snap_db = sorted(snap_db)
+        
+        part_files = sorted(os.listdir(part_path + "part"))
+        part_db = [file for file in part_files if file.endswith(".png")]
+        part_db = sorted(part_db)
 
         self.model.load_weights(model_path)
-
-        features = get_feature(self.model, DB_path)
-
+        
+        snap_path = "./data/db/snap/"
+        part_path = "./data/db/db/"
+        
+        # feature : snapshot, reference : item
+        features = get_feature(self.model, snap_path)
+        reference = get_feature(self.model, part_path)
+        
         print("feature's shape", features.shape)
+        print("reference's shape", features.shape)
 
-        reference = {}
-
-        reference["img"] = db
-        reference["feature"] = list(features)
-
-        with open(reference_path, "wb") as f:
-            pickle.dump(reference, f, protocol=pickle.HIGHEST_PROTOCOL)
+        snap = {}
+        snap["img"] = db
+        snap["feature"] = list(features)
+        
+        with open("./reference_snap.p", "wb") as f:
+            pickle.dump(snap, f, protocol=pickle.HIGHEST_PROTOCOL)
+                  
+        part = {}
+        part["img"] = db
+        part["feature"] = list(features)
+                  
+        with open("./reference_part.p", "wb") as f:
+            pickle.dump(part, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         print("UPDATE COMPLETE!")
 
         return None
+    
+    def evaluate(self, model_path):
+        """
+        model_path : model weight file path 
+        """
+        
+        self.model.load_weights(model_path)
+        
+        snap_path = "./data/db/snap/"
+        part_path = "./data/db/db/"
+        
+        snap_files = sorted(os.listdir(snap_path + "snap"))
+        snap_db = [file for file in snap_files if file.endswith(".png")]
+        snap_db = sorted(snap_db)
+        
+        part_files = sorted(os.listdir(part_path + "part"))
+        part_db = [file for file in part_files if file.endswith(".png")]
+        part_db = sorted(part_db)
+        
+        features = get_feature(self.model, snap_path)
+        reference = get_feature(self.model, part_path)
+
+            
+        sim_vector = np.dot(features.reshape(-1, 1024), reference.reshape(-1, 1024).T)
+        indice = np.argsort(sim_vector, axis=-1)
+        indice = list(np.flip(indice, axis=-1))
+        
+        results = []
+        
+        for i in range(features.shape[0]):
+            
+            ranked_list = [part_db[k] for k in indice[i]]
+            results.append(ranked_list)
+            
+        mAP_, APs = mAP(results, self.k)     
+        
+        APs = {k : v for k, v in zip(snap_db, APs)}
+
+        return mAP_, APs
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser()
@@ -186,13 +245,13 @@ if __name__ == '__main__':
     args.add_argument('--sbow_shape', type=int, default=(128,))
     args.add_argument('--train', type=bool, default=False)
     args.add_argument('--updateDB', type=bool, default=False)
-    args.add_argument('--DB_path', type=str, default=None)
+    args.add_argument('--eval', type=bool, default=False)
     args.add_argument('--model_path', type=str,
                       default="./checkpoint/finish")
     args.add_argument('--dataset_path', type=str, default="./data/images/")
     args.add_argument('--checkpoint_path', type=str, default="./checkpoint/")
     args.add_argument('--checkpoint_inteval', type=int, default=10)
-    args.add_argument('--reference_path', type=str, default="./reference_part.p")
+    args.add_argument('--k', type=int, default=21)
 
     config = args.parse_args()
     
@@ -201,7 +260,14 @@ if __name__ == '__main__':
     if config.train:
 
         datagen = ImageDataGenerator(preprocessing_function=preprocess,
-                                     zoom_range=0.2, vertical_flip=True, horizontal_flip=True,
+                                     zoom_range=0.2, 
+                                     rotation_range=40,
+                                     width_shift_range=0.2,
+                                     height_shift_range=0.2,
+                                     fill_mode='nearest',
+                                     vertical_flip=True, 
+                                     shear_range=0.2,
+                                     horizontal_flip=True,
                                      validation_split=0.1)
 
         descriptor.train(config.dataset_path, datagen,
@@ -209,4 +275,15 @@ if __name__ == '__main__':
 
     if config.updateDB:
 
-        descriptor.updateDB(config.model_path, config.DB_path, config.reference_path)
+        descriptor.updateDB(config.model_path)
+        
+    if config.eval:
+        
+        """only for the snapshot images"""
+        mAP_, APs = descriptor.evaluate(config.model_path)
+        
+        with open("AP_log.p", "wb") as f: 
+            pickle.dump(APs, f, protocol=pickle.HIGHEST_PROTOCOL)
+            
+        print("mAP : {}".format(mAP_))
+        

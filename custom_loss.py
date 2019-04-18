@@ -11,9 +11,9 @@ def ArcFaceloss(labels, features):
 
     N = tf.shape(labels)[0]
     s = 64.
-    m1 = 1.
-    m2 = 0.5
-    m3 = 0.
+    m1 = 0.9
+    m2 = 0.4
+    m3 = 0.15
 
     target_cos = tf.reduce_sum(tf.cast(labels, tf.float32) * features, axis=-1)
     target_cos = tf.cos(tf.math.acos(target_cos) * m1 + m2) - m3
