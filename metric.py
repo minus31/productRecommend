@@ -1,7 +1,7 @@
 import pandas as pd 
 import numpy as np 
 
-def mAP(results, k=21, AP=True):
+def mAP(results, k=200, AP=True):
     """
     Arguments : 
         results = related images list for sorted file list
@@ -15,14 +15,13 @@ def mAP(results, k=21, AP=True):
     for truth, result in enumerate(results):
 
         result = result[:k]
-        print("truth", truth, "result 3: ", result[:3])
+#         print("truth", truth, "result 3: ", result[:3])
         # AP 계산
         correct = 0
         precisions = [] 
         for j, r in enumerate(result):
-            print(r.split("-")[0])
             
-            if int(r.split("_")[0]) == truth:
+            if int(str(r).split("_")[0]) == truth:
                 correct += 1
                 precision = correct / (j + 1)
                 precisions.append(precision)

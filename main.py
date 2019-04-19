@@ -219,7 +219,7 @@ class Descriptor():
             
         sim_vector = np.dot(features.reshape(-1, 1024), reference.reshape(-1, 1024).T)
         indice = np.argsort(sim_vector, axis=-1)
-        indice = list(np.flip(indice, axis=-1))
+        indice = np.flip(indice, axis=-1)
         
         results = []
         
