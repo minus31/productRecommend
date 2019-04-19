@@ -15,12 +15,11 @@ def mAP(results, k=200, AP=True):
     for truth, result in enumerate(results):
 
         result = result[:k]
-#         print("truth", truth, "result 3: ", result[:3])
         # AP 계산
         correct = 0
         precisions = [] 
         for j, r in enumerate(result):
-            
+
             if int(str(r).split("_")[0]) == truth:
                 correct += 1
                 precision = correct / (j + 1)
