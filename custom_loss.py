@@ -12,7 +12,7 @@ def ArcFaceloss(labels, features):
     N = tf.shape(labels)[0]
     s = 64.
     m = 0.5
-    
+    cos_t = features
     cos_m = math.cos(m)
     sin_m = math.sin(m)
     mm = sin_m * m  
