@@ -39,7 +39,7 @@ def ArcFaceloss(labels, features):
 
     logit = tf.add(tf.multiply(s_cos_t, inv_mask), tf.multiply(cos_mt_temp, mask), name='arcface_loss_output')
     
-    loss = tf.nn.softmax_cross_entropy_with_logits(logits=logit, labels=labels)
+    loss = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logit, labels=labels)
 
     return tf.reduce_mean(loss)
 
