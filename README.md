@@ -7,7 +7,8 @@
 - [Project motivation](#motivation)
 - [Core Function](#func)
 - [Model details](#detail)
-- [Model details](#improve)
+- [Self-feedback](#disscusion)
+- [Things to improve](#improve)
 - [Troubles](#trouble)
 
 ## Content-based fashion items recommendation
@@ -32,7 +33,7 @@
 
 다만 이렇게 소개되는 아이템은 무신사 직원 혹은 관련 브랜드의 직원(패션 전문가)들이 선택한 것으로 해당 이미지 스냅샷에 대해 추천된 아이템으로 생각 할 수 있었습니다. 만약 이 추천 이미지들을 검색할 수 있다면, 그것이 또한 좋은 추천시스템이 될 수도 있겠다는 생각을 했습니다. 이 프로젝트를 위해 저는 600개의 포스트를 훈련용으로 300개를 테스트용으로 크롤링했습니다. 
 
-<a id="core"></a>
+<a id="func"></a>
 
 #### Core Function
 
@@ -67,9 +68,9 @@ CNN을 통과해 이미지의 설명자(Descriptor)를 만들고 그 유사도�
 
 이 후 시도 할 예정이거나 시도 중인 것은 다음과 같습니다. 
 
-<a id="conclusion"></a>
+<a id="disscusion"></a>
 
-#### Conclusions
+#### Self-feedback
 
 * 프로젝트에 대해서 
 
@@ -78,6 +79,10 @@ CNN을 통과해 이미지의 설명자(Descriptor)를 만들고 그 유사도�
   다만 이 기술의 적용을 보여주기 위해서 제가 만든 사이트는 위 목적과는 어울리지 않는다고 생각합니다. 보편적으로 사용자 입장에서 입력하는 이미지를 넣었을 때 궁금한 것은 이 이미지 안에 사람이 어떤 브랜드의 옷을 입었는지, 어디서 저 것과 비슷한 옷을 구할 수 있는지 일 것 입니다. 근데 제가 만든 시스템은 시각적으로는 다소 유사하지 않는 결과를 낼 가능성이 큽니다. 
 
   따라서 이 시스템은 소비자의 능동적인 행동을 요구하는 서비스보다, 이전에 산 옷, 이전에 입었던 옷 등을 토대로 자동으로 추천하는 기능으로 사용되는 것이 더 잘 어울릴 것입니다. 
+
+* ArcFace loss 에 대해서 
+
+  Classification loss는 괜찮지만, ArcFaceloss는 30epochs 부터 validation loss가 증가하기 시작합니다. 아주 빨리 overfitting이 시작된다고 느꼈고 제가 현재 metric으로 쓰고 있는 mAP 기준으로 해도 overfitting문제를 보였습니다. 더많은 Photometric distortion을 적용해도 비슷한 결과를 출력합니다. 근본적인 문제는 데이터셋인 것 같습니다. 데이터셋에 클래스가 600개이고 하나의 클래스별로 많게는 20개 ~ 적게는 3개의 이미지가 있습니다. 이 데이터셋이 너무 작은 것이 문제는 데이터를 좀 더 확보하는 것으로 해결 될 수 있다고 생각하고, 클래스별 개체수 차이는 Oversampling이나 batch를 구성하는 방법에 대해서 고민을 해봐야합니다. 그리고 ArcFaceloss 외의 다른 angular margin loss를 사용하는 것도 시도 해볼만 하다고 생각합니다.(다만 GPU를 사용하는데 드는 비용이 점점 부담 스러워 집니다...)
 
 <a id="improve"></a>
 
