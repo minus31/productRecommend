@@ -157,6 +157,9 @@ class Descriptor():
         """
         model_path : model weight file path 
         """
+        snap_path = "../Fashion_items_recommendation_demo/static/db/snap/"
+        part_path = "../Fashion_items_recommendation_demo/static/db/part/"
+        
         snap_files = sorted(os.listdir(snap_path + "snap"))
         snap_db = [file for file in snap_files if file.endswith(".png")]
         snap_db = sorted(snap_db)
@@ -167,26 +170,23 @@ class Descriptor():
 
         self.model.load_weights(model_path)
         
-        snap_path = "./data/db/snap/"
-        part_path = "./data/db/db/"
-        
         # feature : snapshot, reference : item
         features = get_feature(self.model, snap_path)
         reference = get_feature(self.model, part_path)
         
         print("feature's shape", features.shape)
-        print("reference's shape", features.shape)
+        print("reference's shape", reference.shape)
 
         snap = {}
-        snap["img"] = db
+        snap["img"] = snap_db
         snap["feature"] = list(features)
         
         with open("./reference_snap.p", "wb") as f:
             pickle.dump(snap, f, protocol=pickle.HIGHEST_PROTOCOL)
                   
         part = {}
-        part["img"] = db
-        part["feature"] = list(features)
+        part["img"] = part_db
+        part["feature"] = list(reference)
                   
         with open("./reference_part.p", "wb") as f:
             pickle.dump(part, f, protocol=pickle.HIGHEST_PROTOCOL)
