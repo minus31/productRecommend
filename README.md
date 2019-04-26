@@ -15,7 +15,7 @@
 
 이 레포는 케라스를 이용해 content-based 추천시스템을 구현한 것입니다. 사용한 기술은 이미지검색 기술을 이용했습니다. 다만 제가 구성한 데이터셋은 각 클래스들이 시각적으로 유사한 것이 아니라 전문가들의 추천으로 구성되어 있기 때문에, 이미지 검색 시스템이라기 보다 추천시스템이라는 용어를 사용했습니다.  그리고 content-based의 의미는 이미지 간의 관련도가 높은 것을 추천한다는 의미에서 사용했습니다. 이 글에서 사람들의 사진을 **Snapshot**, 각 패션 아이템의 사진을 **Item**이라고 하겠습니다. 밑에서 자세히 설명하겠지만 이 시스템은 Snapshot을 입력으로 받고 그 snapshot과 관련이 있는 fashion item을 추천하는 기능을 합니다. 
 
-- Demo site link : http://n31.closedclothes.tk/
+- Demo site link : <http://13.209.241.14/>
 
 <a id="motivation"></a>
 
@@ -125,7 +125,7 @@ CNN을 통과해 이미지의 설명자(Descriptor)를 만들고 그 유사도�
 
 This repo is a framework implemented with Keras for image retreval and content-based recommendation task. In the system, photos of people are called **Snapshots** and photos of clothing are called **Items**. When someone inputs an image of snapshot(or items), this system find items(or snapshot) related to what the one entered  from database. Although it just outputs six images for now, It can be utilized to recommend products to sell and shorten time for customers to reach to what they are looking for. 
 
-* Demo site link : http://n31.closedclothes.tk/
+* Demo site link : <http://13.209.241.14/>
 
 #### Project motivation
 
