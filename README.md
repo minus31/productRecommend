@@ -55,6 +55,8 @@
 
 #### Model details
 
+![model outline](https://www.dropbox.com/s/3fbmprmsv3y6i2i/Fashion_pic.png?raw=1)
+
 CNN을 통과해 이미지의 설명자(Descriptor)를 만들고 그 유사도를 기준으로 관련된 이미지를 출력합니다. 이 설명자의 유사도가 연관된 이미지 간에 높아지도록 지도학습을 진행했습니다.
 
 - Backbone model : ResNet50(pretrained on the ImageNet dataset)
@@ -62,7 +64,7 @@ CNN을 통과해 이미지의 설명자(Descriptor)를 만들고 그 유사도�
   - SPoC and GeM(구현은 이 [paper](https://arxiv.org/pdf/1711.02512.pdf) 논문을 참고했습니다.)
 
 - Classification loss에 대해서는 Label smoothing 과 temperature scaling을 적용했습니다.
-- 더 분별력있는 descriptor를 얻기위해서 Augular margin loss 중, ArcFace([paper](https://arxiv.org/abs/1801.07698), [summary](https://minus31.github.io/2019/04/08/ArcFace/)) loss function을 사용했습니다. 
+- Combined Global Descriptor를 제시한 논문에서는 Triplet Loss 같은 Ranking Loss를 사용했지만,  더 분별력있는 descriptor를 얻기위해서 Augular margin loss 중, ArcFace([paper](https://arxiv.org/abs/1801.07698), [summary](https://minus31.github.io/2019/04/08/ArcFace/)) loss function을 사용했습니다. (실험적으로 더 나은 결과를 보였다. 다만 이 과제에서 MAP가 높다는 것이 사람이 직접 봤을 때 더 나은 것이 아니라서 직접 보고 판단하였다. 알맞은 Metric에 대해서도 연구가 필요하다.)
 
 이 후 시도 할 예정이거나 시도 중인 것은 다음과 같습니다.
 
@@ -74,9 +76,9 @@ CNN을 통과해 이미지의 설명자(Descriptor)를 만들고 그 유사도�
 
   이 프로젝트의 본래 목적은 의류 기존의 이미지 검색 기술을 응용해서 기존의 시각적인 유사도가 기준이 아닌 전문가의 시각에서의 연관도를 기준으로 패션아이템을 추천하는 것입니다.
 
-  다만 이 기술의 적용을 보여주기 위해서 제가 만든 사이트는 위 목적과는 어울리지 않는다고 생각합니다. 보편적으로 사용자 입장에서 입력하는 이미지를 넣었을 때 궁금한 것은 이 이미지 안에 사람이 어떤 브랜드의 옷을 입었는지, 어디서 저 것과 비슷한 옷을 구할 수 있는지 일 것 입니다. 근데 제가 만든 시스템은 시각적으로는 다소 유사하지 않는 결과를 낼 가능성이 큽니다.
+  그래서 이 기술의 적용을 보여주기 위해서 제가 만든 사이트는 위 목적과는 어울리지 않아 보입니다. 보편적으로 사용자 입장에서 입력하는 이미지를 넣었을 때 궁금한 것은 이 이미지 안에 사람이 어떤 브랜드의 옷을 입었는지, 어디서 저 것과 비슷한 옷을 구할 수 있는지 일텐데, 제가 만든 시스템은 시각적으로는 다소 유사하지 않는 결과를 낼 가능성이 큽니다.
 
-  따라서 이 시스템은 소비자의 능동적인 행동을 요구하는 서비스보다, 이전에 산 옷, 이전에 입었던 옷 등을 토대로 자동으로 추천하는 기능으로 사용되는 것이 더 잘 어울릴 것입니다.
+  사실 이 모델은 소비자의 능동적인 행동을 요구하는 서비스보다, 이전에 산 옷, 이전에 입었던 옷 등을 토대로 자동으로 추천하는 기능에서 사용되는 것을 기대하며 만든 것입니다.
 
 * ArcFace loss 에 대해서
 
